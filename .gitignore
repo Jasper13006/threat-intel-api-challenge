@@ -1,0 +1,36 @@
+# Dependencies
+
+node_modules/
+
+# Build output
+
+dist/
+
+# Environment variables
+
+.env
+.env.local
+
+# IDE
+
+.vscode/
+.idea/
+
+# OS
+
+.DS_Store
+Thumbs.db
+
+# Logs
+
+_.log
+npm-debug.log_
+
+# Claude-related files
+
+claude-code-prompt.md
+.claude/
+
+# Test coverage
+
+coverage/

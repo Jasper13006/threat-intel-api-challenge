@@ -4,6 +4,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { ZodError } from 'zod';
 import { AppError } from './shared/errors';
 import { createErrorResponse } from './shared/response';
+import { indicatorRoutes } from "./modules/indicators/indicator.routes";
 
 export async function buildApp() {
     const app = Fastify({
@@ -60,6 +61,10 @@ export async function buildApp() {
             );
         }
     );
+
+    // Register modules
+    await app.register(indicatorRoutes, { prefix: '/api/indicators' });
+
 
     app.get('/health', async () => {
         return { status: 'ok', timestamp: new Date().toISOString() };

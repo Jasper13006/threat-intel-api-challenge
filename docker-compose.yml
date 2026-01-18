@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - PORT=3000
+      - DATABASE_PATH=/app/threat_intel.db
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev"

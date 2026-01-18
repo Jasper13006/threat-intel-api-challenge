@@ -153,12 +153,13 @@ describe('DashboardService', () => {
         it('should aggregate indicator distribution correctly', async () => {
             const stats = await dashboardService.getDashboardStats('7d');
 
-            expect(stats.indicator_distribution).toEqual({
-                ip: 3000,
-                domain: 3000,
-                url: 2500,
-                hash: 1500,
-            });
+            expect(Array.isArray(stats.indicator_distribution)).toBe(true);
+            expect(stats.indicator_distribution).toEqual([
+                { type: 'ip', count: 3000 },
+                { type: 'domain', count: 3000 },
+                { type: 'url', count: 2500 },
+                { type: 'hash', count: 1500 },
+            ]);
         });
 
         it('should return top threat actors as array', async () => {
@@ -169,7 +170,7 @@ describe('DashboardService', () => {
             expect(stats.top_threat_actors[0]).toEqual({
                 id: 'ta-1',
                 name: 'APT28',
-                indicator_count: 456,
+                count: 456,
             });
         });
 
@@ -181,7 +182,7 @@ describe('DashboardService', () => {
             expect(stats.top_campaigns[0]).toEqual({
                 id: 'c-1',
                 name: 'Operation A',
-                indicator_count: 123,
+                count: 123,
             });
         });
     });

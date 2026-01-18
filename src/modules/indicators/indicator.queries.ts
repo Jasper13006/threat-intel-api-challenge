@@ -48,21 +48,13 @@ export function getRelatedIndicators(indicatorId: string): RelatedIndicator[] {
     return stmt.all(indicatorId) as RelatedIndicator[];
 }
 
-export function searchIndicators(
-    filters: SearchFilters,
-    limit: number,
-    offset: number
-): IndicatorRow[] {
-    const db = getDb();
+interface WhereClauseResult {
+    sql: string;
+    params: unknown[];
+}
 
-    let sql = `
-    SELECT DISTINCT i.*
-    FROM indicators i
-    LEFT JOIN campaign_indicators ci ON i.id = ci.indicator_id
-    LEFT JOIN actor_campaigns ac ON ci.campaign_id = ac.campaign_id
-    WHERE 1=1
-  `;
-
+function buildWhereClause(filters: SearchFilters): WhereClauseResult {
+    let sql = '';
     const params: unknown[] = [];
 
     if (filters.type) {
@@ -95,8 +87,29 @@ export function searchIndicators(
         params.push(filters.last_seen_before);
     }
 
+    return { sql, params };
+}
+
+export function searchIndicators(
+    filters: SearchFilters,
+    limit: number,
+    offset: number
+): IndicatorRow[] {
+    const db = getDb();
+
+    let sql = `
+    SELECT DISTINCT i.*
+    FROM indicators i
+    LEFT JOIN campaign_indicators ci ON i.id = ci.indicator_id
+    LEFT JOIN actor_campaigns ac ON ci.campaign_id = ac.campaign_id
+    WHERE 1=1
+  `;
+
+    const whereClause = buildWhereClause(filters);
+    sql += whereClause.sql;
     sql += ' ORDER BY i.first_seen DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+
+    const params = [...whereClause.params, limit, offset];
 
     const stmt = db.prepare(sql);
     return stmt.all(...params) as IndicatorRow[];
@@ -113,39 +126,10 @@ export function countIndicators(filters: SearchFilters): number {
     WHERE 1=1
   `;
 
-    const params: unknown[] = [];
-
-    if (filters.type) {
-        sql += ' AND i.type = ?';
-        params.push(filters.type);
-    }
-
-    if (filters.value) {
-        sql += ' AND i.value LIKE ?';
-        params.push(`%${filters.value}%`);
-    }
-
-    if (filters.threat_actor) {
-        sql += ' AND ac.threat_actor_id = ?';
-        params.push(filters.threat_actor);
-    }
-
-    if (filters.campaign) {
-        sql += ' AND ci.campaign_id = ?';
-        params.push(filters.campaign);
-    }
-
-    if (filters.first_seen_after) {
-        sql += ' AND i.first_seen >= ?';
-        params.push(filters.first_seen_after);
-    }
-
-    if (filters.last_seen_before) {
-        sql += ' AND i.last_seen <= ?';
-        params.push(filters.last_seen_before);
-    }
+    const whereClause = buildWhereClause(filters);
+    sql += whereClause.sql;
 
     const stmt = db.prepare(sql);
-    const result = stmt.get(...params) as { count: number };
+    const result = stmt.get(...whereClause.params) as { count: number };
     return result.count;
 }

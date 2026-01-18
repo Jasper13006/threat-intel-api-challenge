@@ -2,6 +2,12 @@ import Fastify, { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { ZodError } from 'zod';
+import {
+    serializerCompiler,
+    validatorCompiler,
+    jsonSchemaTransform,
+    ZodTypeProvider
+} from 'fastify-type-provider-zod';
 import { AppError } from './shared/errors';
 import { createErrorResponse } from './shared/response';
 import { indicatorRoutes } from "./modules/indicators/indicator.routes";
@@ -11,7 +17,10 @@ import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 export async function buildApp() {
     const app = Fastify({
         logger: true,
-    });
+    }).withTypeProvider<ZodTypeProvider>();
+
+    app.setValidatorCompiler(validatorCompiler);
+    app.setSerializerCompiler(serializerCompiler);
 
     await app.register(swagger, {
         openapi: {
@@ -26,6 +35,7 @@ export async function buildApp() {
                 { name: 'dashboard', description: 'Dashboard endpoints' },
             ],
         },
+        transform: jsonSchemaTransform,
     });
 
     await app.register(swaggerUi, {

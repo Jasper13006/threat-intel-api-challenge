@@ -6,6 +6,7 @@ import { AppError } from './shared/errors';
 import { createErrorResponse } from './shared/response';
 import { indicatorRoutes } from "./modules/indicators/indicator.routes";
 import { campaignRoutes } from './modules/campaigns/campaign.routes';
+import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 
 export async function buildApp() {
     const app = Fastify({
@@ -66,6 +67,7 @@ export async function buildApp() {
     // Register modules
     await app.register(indicatorRoutes, { prefix: '/api/indicators' });
     await app.register(campaignRoutes, { prefix: '/api/campaigns' });
+    await app.register(dashboardRoutes, { prefix: '/api/dashboard' });
 
     app.get('/health', async () => {
         return { status: 'ok', timestamp: new Date().toISOString() };
